@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs & build output
+*.log
+npm-debug.log*
+FrontEnd/studentdashboard/build/

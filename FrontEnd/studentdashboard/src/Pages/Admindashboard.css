@@ -1,0 +1,49 @@
+/* FrontEnd/studentdashboard/src/Pages/Admindashboard.css */
+/* src/Pages/Admindashboard.css */
+
+.admin-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1f2937;
+    padding: 15px 30px;
+    color: white;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropbtn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    width: 100%;
+    border: none;
+    padding: 10px;
+    text-align: left;
+    background: white;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover {
+    background: #f3f4f6;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.card {
+    background: white;
+    margin: 30px;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
