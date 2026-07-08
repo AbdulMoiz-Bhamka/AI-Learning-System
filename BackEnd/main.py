@@ -5,8 +5,8 @@ from fastapi import FastAPI, Depends
 from database import engine
 from models import Base
 from sqlalchemy.orm import Session
-from  schemas import StudentCreate , Studentlogin
-from models import Student
+from schemas import StudentCreate, Studentlogin, CourseResponse, AssignCourseRequest
+from models import Student, Course, StudentCourse
 from database import get_db
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -73,7 +73,27 @@ def get_students(db: Session = Depends(get_db)):
     students = db.query(Student).all()
     return students
 
+@app.get("/courses", response_model=list[CourseResponse])
+def get_courses(db: Session = Depends(get_db)):
+    courses = db.query(Course).all()
+    return courses
 
+@app.post("/students/{student_id}/courses")
+def assign_courses(student_id: int, request: AssignCourseRequest, db: Session = Depends(get_db)):
+    # Remove existing course assignments for this student
+    db.query(StudentCourse).filter(StudentCourse.student_id == student_id).delete()
+    
+    # Add new ones
+    for course_id in request.course_ids:
+        new_assignment = StudentCourse(student_id=student_id, course_id=course_id)
+        db.add(new_assignment)
+    
+    db.commit()
+    return {"message": "Courses assigned successfully"}
 
-    
-    
+@app.get("/students/{student_id}/courses", response_model=list[CourseResponse])
+def get_student_courses(student_id: int, db: Session = Depends(get_db)):
+    # Join StudentCourse and Course tables
+    courses = db.query(Course).join(StudentCourse, Course.id == StudentCourse.course_id)\
+              .filter(StudentCourse.student_id == student_id).all()
+    return courses

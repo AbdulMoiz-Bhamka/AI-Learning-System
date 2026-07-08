@@ -1,75 +1,123 @@
 // src/Pages/Login.jsx
-
-import React, { use, useState } from 'react';
+import React, { useState } from 'react';
 import API from "../Services/api";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import './Login.css';
 
 function Login() {
-
     const navigate = useNavigate();
-
     const [loginData, setloginData] = useState({
         email: "",
         password: ""
     });
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
-
         setloginData({
             ...loginData,
             [e.target.name]: e.target.value
         });
+        if (errorMessage) setErrorMessage("");
     };
 
     const handleSubmit = async (e) => {
-
         e.preventDefault();
-
+        if (!loginData.email || !loginData.password) {
+            setErrorMessage("Please fill in all fields.");
+            return;
+        }
+        
+        setIsLoading(true);
         try {
             const response = await API.post("/login", loginData);
             console.log(response.data);
-            if (response.data.user.role === 'admin') {
-                navigate("/admin-dashboard")
+            
+            if (response.data.message === "User not found" || response.data.message === "Invalid Password") {
+                setErrorMessage(response.data.message);
+                setIsLoading(false);
+                return;
             }
-            else {
-                navigate("/dashboard")
-            }
+
             localStorage.setItem(
                 "student",
                 JSON.stringify(response.data)
-            )
-        }
-        catch (error) {
+            );
 
-            console.log(error);
-
+            if (response.data.user.role === 'admin') {
+                navigate("/admin-dashboard");
+            } else {
+                navigate("/dashboard");
+            }
+        } catch (error) {
+            console.error(error);
+            setErrorMessage("Server error. Please ensure FastAPI is running.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div>
+        <div className="auth-page">
+            <div className="auth-background-glows"></div>
+            
+            <div className="auth-card glass-card">
+                <div className="auth-header">
+                    <div className="auth-logo">
+                        <span>⚡</span> EduAI
+                    </div>
+                    <h2>Welcome Back</h2>
+                    <p>Enter your credentials to access your tutoring dashboard</p>
+                </div>
 
-            <h3>Login Page</h3>
+                {errorMessage && (
+                    <div className="auth-error-banner">
+                        <span>⚠️</span> {errorMessage}
+                    </div>
+                )}
 
-            <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="auth-form">
+                    <div className="form-group-custom">
+                        <label htmlFor="email">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="email"
+                            name="email" 
+                            className="form-input-custom"
+                            placeholder="name@example.com"
+                            value={loginData.email} 
+                            onChange={handleChange} 
+                            required
+                        />
+                    </div>
 
-                <label>Email</label>
+                    <div className="form-group-custom">
+                        <label htmlFor="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password"
+                            name="password" 
+                            className="form-input-custom"
+                            placeholder="••••••••"
+                            value={loginData.password} 
+                            onChange={handleChange} 
+                            required
+                        />
+                    </div>
 
-                <input type="email" name="email" value={loginData.email} onChange={handleChange} />
+                    <button 
+                        type="submit" 
+                        className="btn-premium-primary btn-auth-submit"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? "Signing In..." : "Sign In"}
+                    </button>
+                </form>
 
-                <br />
-
-                <label>Password</label>
-
-                <input type="password" name="password" value={loginData.password} onChange={handleChange} />
-
-                <br />
-                <br />
-
-                <button type="submit"> Login </button>
-
-            </form>
-
+                <div className="auth-footer">
+                    Don't have an account? <Link to="/signup" className="auth-link">Register here</Link>
+                </div>
+            </div>
         </div>
     );
 }
