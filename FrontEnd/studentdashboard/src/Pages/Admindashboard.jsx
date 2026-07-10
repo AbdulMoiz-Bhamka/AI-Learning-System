@@ -22,6 +22,11 @@ function Admindashboard() {
     const [selectedStudentForCourse, setSelectedStudentForCourse] = useState("");
     const [selectedCourseIds, setSelectedCourseIds] = useState([]);
 
+    // Upload book state
+    const [uploadCourseName, setUploadCourseName] = useState("");
+    const [uploadFile, setUploadFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+
     // Fallback info for admin
     const adminSessionData = JSON.parse(localStorage.getItem("student")) || {
         user: { fname: "Admin Portal", email: "admin@gmail.com" }
@@ -127,6 +132,35 @@ function Admindashboard() {
         );
     };
 
+    const handleFileUpload = async (e) => {
+        e.preventDefault();
+        if (!uploadCourseName || !uploadFile) {
+            alert("Please select a course and a file.");
+            return;
+        }
+        
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append("course_name", uploadCourseName);
+        formData.append("file", uploadFile);
+
+        try {
+            const response = await API.post("/admin/upload-book", formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            alert(response.data.message || "Book processed and uploaded successfully.");
+            setUploadCourseName("");
+            setUploadFile(null);
+        } catch (error) {
+            console.error(error);
+            alert("Failed to upload and process book: " + (error.response?.data?.detail || error.message));
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem("student");
         navigate("/login");
@@ -172,6 +206,12 @@ function Admindashboard() {
                         onClick={() => setActiveSelection("assign")}
                     >
                         <span>📚</span> Assign Courses
+                    </button>
+                    <button 
+                        className={`admin-menu-item ${ActiveSelection === 'upload' ? 'active' : ''}`}
+                        onClick={() => setActiveSelection("upload")}
+                    >
+                        <span>📤</span> Upload Books
                     </button>
                     <button 
                         className={`admin-menu-item ${ActiveSelection === 'delete' ? 'active' : ''}`}
@@ -411,6 +451,55 @@ function Admindashboard() {
 
                                     <button type="submit" className="btn-premium-primary admin-submit-btn">
                                         Assign Selected Courses ➔
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* UPLOAD BOOK PANEL */}
+                    {ActiveSelection === "upload" && (
+                        <div className="admin-tab-pane fade-in">
+                            <div className="admin-form-card glass-card">
+                                <h3>Upload Course Material (PDF/TXT)</h3>
+                                <p className="text-muted">Upload textbooks or notes to be processed, chunked, and embedded into the Qdrant Vector DB for the AI Tutor.</p>
+
+                                <form onSubmit={handleFileUpload} className="admin-form-grid">
+                                    <div className="form-group-custom" style={{ gridColumn: "1 / -1" }}>
+                                        <label>Target Course</label>
+                                        <select 
+                                            className="form-input-custom select-custom"
+                                            value={uploadCourseName} 
+                                            onChange={(e) => setUploadCourseName(e.target.value)}
+                                            required
+                                        >
+                                            <option value="">-- Select Course --</option>
+                                            {courses.map(course => (
+                                                <option key={course.id} value={course.name}>
+                                                    {course.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group-custom file-upload-group" style={{ gridColumn: "1 / -1" }}>
+                                        <label>Select Book/Notes File</label>
+                                        <div className="file-upload-box">
+                                            <input 
+                                                type="file" 
+                                                accept=".pdf,.txt"
+                                                onChange={(e) => setUploadFile(e.target.files[0])}
+                                                required 
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        type="submit" 
+                                        className="btn-premium-primary admin-submit-btn"
+                                        disabled={isUploading}
+                                    >
+                                        {isUploading ? "Processing & Embedding... ⏳" : "Upload & Embed to Qdrant ➔"}
                                     </button>
                                 </form>
                             </div>

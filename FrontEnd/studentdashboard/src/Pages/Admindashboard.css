@@ -160,8 +160,32 @@
 }
 
 .admin-viewport-header p {
-  color: var(--text-muted);
+  color: rgba(244, 63, 94, 0.8);
   font-size: 0.9rem;
+}
+
+.file-upload-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  transition: var(--transition-smooth);
+}
+
+.file-upload-box:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary-neon);
+}
+
+.file-upload-box input[type="file"] {
+  color: var(--text-main);
+  background: transparent;
+  width: 100%;
+}
+
+.file-upload-group {
+  margin-top: 10px;
 }
 
 .system-status-indicator {

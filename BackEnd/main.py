@@ -1,7 +1,7 @@
 # BackEnd/main.py
 # main.py
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, UploadFile, File, Form, HTTPException
 from database import engine
 from models import Base
 from sqlalchemy.orm import Session
@@ -9,6 +9,7 @@ from schemas import StudentCreate, Studentlogin, CourseResponse, AssignCourseReq
 from models import Student, Course, StudentCourse
 from database import get_db
 from fastapi.middleware.cors import CORSMiddleware
+from document_processor import process_and_store_document
 
 
 app = FastAPI()
@@ -97,3 +98,24 @@ def get_student_courses(student_id: int, db: Session = Depends(get_db)):
     courses = db.query(Course).join(StudentCourse, Course.id == StudentCourse.course_id)\
               .filter(StudentCourse.student_id == student_id).all()
     return courses
+
+@app.post("/admin/upload-book")
+async def upload_book(
+    file: UploadFile = File(...), 
+    course_name: str = Form(...)
+):
+    try:
+        file_bytes = await file.read()
+        file_ext = file.filename.split(".")[-1].lower()
+        if file_ext not in ["pdf", "txt"]:
+            raise HTTPException(status_code=400, detail="Only PDF and TXT files are supported.")
+            
+        result = await process_and_store_document(
+            file_bytes=file_bytes,
+            filename=file.filename,
+            course_name=course_name,
+            file_type=file_ext
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
